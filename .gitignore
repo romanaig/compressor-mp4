@@ -1,0 +1,24 @@
+# your videos: never published
+input/
+output/
+app/tmp/
+*.partial*
+
+# local test/benchmark results (machine paths, screenshots of your videos)
+tests/history/
+
+# local-only material
+_backup_pt/
+design/
+.claude/
+
+# Python / OS / editors
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

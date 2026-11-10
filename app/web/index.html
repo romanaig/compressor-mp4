@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compressor MP4</title>
+<!-- inline icon: the browser does not request /favicon.ico from the server -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='2' y='4' width='20' height='16' rx='3' fill='%23e8d6ad'/%3E%3Cpath d='M10 9v6l5-3z' fill='%231a1712'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+
+<!-- icons: drawn once, used with <use href="#i-…"> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path class="filled" d="M11 6 3 12l8 6V6zM21 6l-8 6 8 6V6z"/></symbol>
+    <symbol id="i-forward" viewBox="0 0 24 24"><path class="filled" d="M13 6l8 6-8 6V6zM3 6l8 6-8 6V6z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path class="filled" d="M7 5v14l12-7z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path class="filled" d="M6 5h4v14H6zM14 5h4v14h-4z"/></symbol>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="icon-box" title="Runs only on your PC (127.0.0.1)"><svg class="icon"><use href="#i-lock"/></svg></span>
+    <h1>Compressor MP4</h1>
+    <span id="statusDot" class="dot" aria-hidden="true"></span>
+    <span class="divider" aria-hidden="true"></span>
+    <span id="version" class="badge">—</span>
+  </div>
+  <div class="file"><svg class="icon"><use href="#i-film"/></svg><span id="fileInfo">Drop a video into the window</span></div>
+  <div class="segmented" role="radiogroup" aria-label="Resolution cap">
+    <span class="label">Format:</span>
+    <span id="caps" class="chips"></span>
+  </div>
+</header>
+
+<main>
+  <aside class="panel">
+    <div class="section-head">
+      <label class="label strong" for="pctNum">Compression</label>
+      <span id="codec" class="badge">H.264 / AAC</span>
+    </div>
+
+    <div class="card target">
+      <div>
+        <span class="label">Target reduction</span>
+        <div id="params" class="params">—</div>
+      </div>
+      <div class="pct-number">
+        <input id="pctNum" type="number" min="0" max="100" step="0.01" value="50.00" aria-label="Compression in %">
+        <span>%</span>
+      </div>
+    </div>
+
+    <div class="pct-slider">
+      <input id="pct" type="range" min="0" max="100" step="0.01" value="50" aria-label="Compression">
+      <div id="pctMarks" class="pct-marks"></div>
+    </div>
+
+    <div class="card fps">
+      <div class="section-head">
+        <span class="label">Frame rate <small>(FPS)</small></span>
+        <span id="fpsValue" class="fps-value">—</span>
+      </div>
+      <input id="fps" type="range" min="1" max="30" step="1" value="30" disabled aria-label="Frame rate">
+      <div class="presets">
+        <span class="label muted">Presets:</span>
+        <span id="fpsPresets" class="chips"></span>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button id="btPreview" disabled><svg class="icon"><use href="#i-eye"/></svg>Preview<kbd>P</kbd></button>
+      <button id="btRender" class="primary" disabled><svg class="icon"><use href="#i-check"/></svg>Render<kbd>R</kbd></button>
+    </div>
+
+    <div id="estimate" class="card result" aria-live="polite">
+      <div class="value-row"><span>Original</span><b id="estOriginal">—</b></div>
+      <div class="value-row"><span>Estimate</span><b id="estSize" class="green">—</b></div>
+      <div class="value-row"><span>Reduction</span><b id="estReduction">—</b></div>
+      <div class="bar"><div id="sizeBar" class="green"></div></div>
+      <div class="savings"><span id="estNew">New: —</span><span id="estSaved">Saved: —</span></div>
+      <p id="estNote" class="note">Press Preview to estimate the size.</p>
+    </div>
+
+    <div class="card status">
+      <div class="section-head">
+        <span class="label strong">Status</span>
+        <p id="msg" role="status">Waiting for a file</p>
+      </div>
+      <div class="bar thin" aria-hidden="true"><div id="progress"></div></div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="card format">
+      <div class="section-head">
+        <span class="label">Export format</span>
+        <span id="formatLabel" class="cream">MP4 (Default)</span>
+      </div>
+      <div id="formats" class="chips wide" role="radiogroup" aria-label="Export format"></div>
+    </div>
+
+    <button id="btOutput" class="outline"><svg class="icon"><use href="#i-folder"/></svg>Open output folder</button>
+    <p class="hint"><svg class="icon yellow"><use href="#i-bulb"/></svg>Click an image: 1:1 zoom on both screens.</p>
+  </aside>
+
+  <section class="area">
+    <div class="screens">
+      <div class="screen" id="rawScreen">
+        <div class="head">
+          <span class="title"><i class="dot muted"></i>Raw (original)</span>
+          <span><span id="rawTime"></span><span id="rawRes"></span></span>
+        </div>
+        <div class="img">
+          <img id="rawImg" alt="Original frame">
+          <video id="rawVideo" preload="metadata" playsinline hidden></video>
+          <div class="empty" id="rawEmpty">Drop a video (MP4, MOV, MKV, WebM)<br>anywhere in the window.</div>
+          <span class="caption" id="rawCaption"></span>
+        </div>
+        <span class="zoom-badge yellow">1:1 pixel crop</span>
+      </div>
+      <div class="screen-divider" aria-hidden="true"><span></span></div>
+      <div class="screen" id="compScreen">
+        <div class="head">
+          <span class="title"><i class="dot cream"></i>Compressed</span>
+          <span><span id="compTime"></span><span id="compRes"></span></span>
+        </div>
+        <div class="img">
+          <img id="compImg" alt="Compressed frame">
+          <div class="empty" id="compEmpty">Pick the frame and the %,<br>then press Preview (P).</div>
+          <span class="caption" id="compCaption"></span>
+        </div>
+        <span class="zoom-badge">1:1 pixel crop</span>
+        <div class="notice">Frame or settings changed — press Preview (P)</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <p><i class="dot muted"></i>The render shows the real size. Click a screen: 1:1 zoom on both.</p>
+      <p id="colorInfo"></p>
+    </div>
+  </section>
+</main>
+
+<footer class="footer-bar">
+  <div class="transport">
+    <button id="btBack" class="icon-only" title="Previous frame (←)" disabled><svg class="icon"><use href="#i-back"/></svg></button>
+    <button id="btPlay" class="icon-only play" title="Play the original (space)" disabled><svg class="icon"><use href="#i-play"/></svg></button>
+    <button id="btForward" class="icon-only" title="Next frame (→)" disabled><svg class="icon"><use href="#i-forward"/></svg></button>
+  </div>
+  <div class="timeline-box">
+    <div id="timeMarks" class="time-marks"></div>
+    <div class="track">
+      <div id="played" class="played"></div>
+      <div id="sampleMarks" class="samples"></div>
+      <input id="timeline" type="range" min="0" max="0" step="0.01" value="0" disabled aria-label="Position in the video">
+    </div>
+    <div class="timeline-legend">
+      <span id="samplesText"><i class="dot cream"></i>Size-estimate samples show up here</span>
+      <span id="activeSample"></span>
+    </div>
+  </div>
+  <div class="timecode-box">
+    <div id="timecode">00:00:00 / 00:00:00</div>
+    <div id="frameInfo">FRAME 0 · — FPS</div>
+  </div>
+</footer>
+
+<div id="dropZone">Drop the video here</div>
+</body>
+</html>
